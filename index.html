@@ -6,12 +6,26 @@
     <title>Weather App</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Spinning Sun Animation (Fixed Center Point) */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-icon {
+            font-size: 2rem;
+            display: inline-block;
+            animation: spin 1s linear infinite;
+            transform-origin: center center;
+        }
+    </style>
 </head>
 <body class="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
     <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl text-gray-900">
         <div class="flex flex-col items-center">
             <input id="city-input" type="text" placeholder="Enter city..." class="border border-gray-300 p-2 rounded w-full max-w-sm mb-4 text-center">
-            <button onclick="fetchWeather(document.getElementById('city-input').value)" class="bg-indigo-500 text-white px-6 py-2 rounded shadow-md hover:bg-indigo-600 transition">Get Weather</button>
+            <button id="get-weather-btn" onclick="fetchWeather(document.getElementById('city-input').value)" class="bg-indigo-500 text-white px-6 py-2 rounded shadow-md hover:bg-indigo-600 transition">Get Weather</button>
+            <p id="loading-message" class="text-gray-600 text-sm mt-2 hidden"><span class="loading-icon">☀️</span> Fetching data...</p>
             <p id="error-message" class="text-red-500 text-sm mt-2 hidden"></p>
         </div>
         
@@ -40,12 +54,30 @@
             errorMessage.classList.remove("hidden");
             setTimeout(() => errorMessage.classList.add("hidden"), 4000);
         }
+
+        function setLoading(isLoading) {
+            const loadingMessage = document.getElementById("loading-message");
+            const button = document.getElementById("get-weather-btn");
+
+            if (isLoading) {
+                loadingMessage.classList.remove("hidden");
+                button.disabled = true;
+                button.classList.add("opacity-50", "cursor-not-allowed");
+            } else {
+                loadingMessage.classList.add("hidden");
+                button.disabled = false;
+                button.classList.remove("opacity-50", "cursor-not-allowed");
+            }
+        }
         
         async function fetchWeather(city) {
             if (!city) {
                 displayError("Please enter a city");
                 return;
             }
+
+            setLoading(true);
+
             try {
                 const response = await fetch(`/api/weather?city=${city}`);
                 const data = await response.json();
@@ -60,14 +92,21 @@
                 document.getElementById("current-temp").textContent = `${data.main.temp}°C`;
                 document.getElementById("humidity").textContent = data.main.humidity;
                 document.getElementById("wind").textContent = (data.wind.speed * 2.237).toFixed(1);
-                document.getElementById("sunrise").textContent = new Date(data.sys.sunrise * 1000).toLocaleTimeString();
-                document.getElementById("sunset").textContent = new Date(data.sys.sunset * 1000).toLocaleTimeString();
-                
-                fetchForecast(city);
-                fetchHourlyForecast(city);
+
+                const timezoneOffset = data.timezone;
+                const sunrise = new Date((data.sys.sunrise + timezoneOffset) * 1000);
+                const sunset = new Date((data.sys.sunset + timezoneOffset) * 1000);
+
+                document.getElementById("sunrise").textContent = sunrise.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                document.getElementById("sunset").textContent = sunset.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                await fetchHourlyForecast(city);
+                await fetchForecast(city);
             } catch (error) {
                 displayError(error.message);
                 console.error(error);
+            } finally {
+                setLoading(false);
             }
         }
 
@@ -76,15 +115,15 @@
                 const response = await fetch(`/api/weather?city=${city}&type=hourly`);
                 if (!response.ok) throw new Error("Could not fetch hourly forecast data");
                 const data = await response.json();
-                
+
                 const hourlyTemps = [];
                 const hourlyLabels = [];
-                
+
                 data.list.slice(0, 12).forEach(entry => {
                     hourlyTemps.push(entry.main.temp);
                     hourlyLabels.push(new Date(entry.dt_txt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
                 });
-                
+
                 new Chart(document.getElementById("hourly-chart"), {
                     type: "line",
                     data: {
@@ -108,11 +147,12 @@
                 const response = await fetch(`/api/weather?city=${city}&type=forecast`);
                 if (!response.ok) throw new Error("Could not fetch forecast data");
                 const data = await response.json();
-                
+
                 const forecastContainer = document.getElementById("forecast-container");
                 forecastContainer.innerHTML = "";
+
                 const forecastDays = {};
-                
+
                 data.list.forEach(entry => {
                     const date = new Date(entry.dt_txt).toLocaleDateString();
                     if (!forecastDays[date]) {
@@ -120,18 +160,14 @@
                     }
                     forecastDays[date].temps.push(entry.main.temp);
                 });
-                
-                const futureDates = Object.keys(forecastDays).slice(1, 4); 
-                futureDates.forEach(date => {
+
+                Object.keys(forecastDays).slice(0, 3).forEach(date => {
                     const day = forecastDays[date];
-                    const minTemp = Math.min(...day.temps);
-                    const maxTemp = Math.max(...day.temps);
-                    
                     const forecastCard = document.createElement("div");
                     forecastCard.className = "p-4 bg-indigo-100 rounded-lg shadow-md flex flex-col items-center text-center min-w-[150px]";
                     forecastCard.innerHTML = `
                         <h4 class="text-lg font-bold">${date}</h4>
-                        <p>${maxTemp}°C / ${minTemp}°C</p>
+                        <p>${Math.max(...day.temps)}°C / ${Math.min(...day.temps)}°C</p>
                         <img src='https://openweathermap.org/img/wn/${day.icon}.png' class='w-12 h-12'>
                         <p class="text-sm">${day.description}</p>
                     `;
