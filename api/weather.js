@@ -17,9 +17,12 @@ export default async function handler(req, res) {
 
     try {
         const response = await fetch(url);
+        if (!response.ok) {
+            return res.status(response.status).json({ error: "Failed to fetch weather data. Please check the city name and try again." });
+        }
         const data = await response.json();
         res.status(200).json(data);
     } catch (error) {
-        res.status(500).json({ error: "Failed to fetch weather data" });
+        res.status(500).json({ error: "An internal server error occurred while fetching weather data." });
     }
 }
