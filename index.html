@@ -12,6 +12,7 @@
         <div class="flex flex-col items-center">
             <input id="city-input" type="text" placeholder="Enter city..." class="border border-gray-300 p-2 rounded w-full max-w-sm mb-4 text-center">
             <button onclick="fetchWeather(document.getElementById('city-input').value)" class="bg-indigo-500 text-white px-6 py-2 rounded shadow-md hover:bg-indigo-600 transition">Get Weather</button>
+            <p id="error-message" class="text-red-500 text-sm mt-2 hidden"></p>
         </div>
         
         <p id="last-updated" class="text-sm text-gray-500 mt-4">Loading...</p>
@@ -33,21 +34,30 @@
     </div>
     
     <script>
-        function roundTemp(temp) {
-            return (Math.round(temp * 10) / 10).toFixed(1);
+        function displayError(message) {
+            const errorMessage = document.getElementById("error-message");
+            errorMessage.textContent = message;
+            errorMessage.classList.remove("hidden");
+            setTimeout(() => errorMessage.classList.add("hidden"), 4000);
         }
         
         async function fetchWeather(city) {
-            if (!city) return alert("Please enter a city");
+            if (!city) {
+                displayError("Please enter a city");
+                return;
+            }
             try {
                 const response = await fetch(`/api/weather?city=${city}`);
-                if (!response.ok) throw new Error("Location not found");
-                
                 const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || "Failed to fetch weather data");
+                }
+                
                 document.getElementById("last-updated").textContent = new Date().toLocaleString();
                 document.getElementById("city").textContent = `${data.name}, ${data.sys.country}`;
-                document.getElementById("weather-description").textContent = `Feels like ${roundTemp(data.main.feels_like)}°C. ${data.weather[0].description}`;
-                document.getElementById("current-temp").textContent = `${roundTemp(data.main.temp)}°C`;
+                document.getElementById("weather-description").textContent = `Feels like ${data.main.feels_like}°C. ${data.weather[0].description}`;
+                document.getElementById("current-temp").textContent = `${data.main.temp}°C`;
                 document.getElementById("humidity").textContent = data.main.humidity;
                 document.getElementById("wind").textContent = (data.wind.speed * 2.237).toFixed(1);
                 document.getElementById("sunrise").textContent = new Date(data.sys.sunrise * 1000).toLocaleTimeString();
@@ -56,11 +66,11 @@
                 fetchForecast(city);
                 fetchHourlyForecast(city);
             } catch (error) {
-                alert(error.message);
+                displayError(error.message);
                 console.error(error);
             }
         }
-        
+
         async function fetchHourlyForecast(city) {
             try {
                 const response = await fetch(`/api/weather?city=${city}&type=hourly`);
@@ -71,7 +81,7 @@
                 const hourlyLabels = [];
                 
                 data.list.slice(0, 12).forEach(entry => {
-                    hourlyTemps.push(roundTemp(entry.main.temp));
+                    hourlyTemps.push(entry.main.temp);
                     hourlyLabels.push(new Date(entry.dt_txt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
                 });
                 
@@ -92,7 +102,7 @@
                 console.error("Error fetching hourly forecast:", error);
             }
         }
-        
+
         async function fetchForecast(city) {
             try {
                 const response = await fetch(`/api/weather?city=${city}&type=forecast`);
@@ -108,7 +118,7 @@
                     if (!forecastDays[date]) {
                         forecastDays[date] = { temps: [], icon: entry.weather[0].icon, description: entry.weather[0].description };
                     }
-                    forecastDays[date].temps.push(roundTemp(entry.main.temp));
+                    forecastDays[date].temps.push(entry.main.temp);
                 });
                 
                 const futureDates = Object.keys(forecastDays).slice(1, 4); 
