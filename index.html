@@ -30,7 +30,12 @@
         
         <p id="last-updated" class="text-sm text-gray-500 mt-4">Loading...</p>
         <h1 class="text-4xl font-extrabold mb-4 text-indigo-600 tracking-wide uppercase drop-shadow-lg text-center" id="city">Loading...</h1>
-        <p class="text-lg text-gray-700 text-center" id="weather-description">Loading...</p>
+
+        <div class="flex flex-col items-center">
+            <img id="weather-icon" src="" alt="Weather Icon" class="w-20 h-20 hidden">
+            <p class="text-lg text-gray-700 text-center" id="weather-description">Loading...</p>
+        </div>
+
         <h2 class="text-6xl font-bold text-center" id="current-temp">--°C</h2>
         <div class="mt-4 grid grid-cols-2 gap-4 text-sm text-center">
             <p>Humidity: <span id="humidity">--</span>%</p>
@@ -42,7 +47,7 @@
         <h3 class="text-xl font-bold mt-6 text-indigo-900">Hourly Forecast</h3>
         <canvas id="hourly-chart"></canvas>
         
-        <h3 class="text-xl font-bold mt-6 text-indigo-900">4-Day Forecast</h3>
+        <h3 class="text-xl font-bold mt-6 text-indigo-900">5-Day Forecast</h3>
         <div id="forecast-container" class="mt-2 flex flex-row space-x-4 overflow-x-auto"></div>
     </div>
     
@@ -86,6 +91,12 @@
                 document.getElementById("sunrise").textContent = new Date((data.sys.sunrise + timezoneOffset) * 1000).toLocaleTimeString();
                 document.getElementById("sunset").textContent = new Date((data.sys.sunset + timezoneOffset) * 1000).toLocaleTimeString();
 
+                // Update weather icon
+                const iconUrl = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+                const weatherIcon = document.getElementById("weather-icon");
+                weatherIcon.src = iconUrl;
+                weatherIcon.classList.remove("hidden");
+
                 await fetchHourlyForecast(city);
                 await fetchForecast(city);
             } catch (error) {
@@ -109,7 +120,6 @@
                     hourlyLabels.push(new Date(entry.dt_txt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
                 });
 
-                // Clear previous chart before updating
                 const existingChart = Chart.getChart("hourly-chart");
                 if (existingChart) existingChart.destroy();
 
@@ -148,7 +158,7 @@
                     forecastDays[date].temps.push(entry.main.temp);
                 });
 
-                Object.entries(forecastDays).slice(0, 4).forEach(([date, day]) => {
+                Object.entries(forecastDays).slice(0, 5).forEach(([date, day]) => {
                     const minTemp = Math.min(...day.temps).toFixed(1);
                     const maxTemp = Math.max(...day.temps).toFixed(1);
 
