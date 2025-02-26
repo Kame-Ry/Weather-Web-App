@@ -7,16 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Fade-in/out effect for loading message */
-        @keyframes fade {
-            0% { opacity: 0; }
-            50% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-        .loading-message {
-            font-size: 1rem;
-            animation: fade 1.5s infinite;
-        }
         .forecast-card {
             background-color: rgba(30, 58, 138, 0.6);
             color: white;
@@ -34,10 +24,6 @@
             max-width: 600px;
             height: 300px;
             margin: auto;
-        }
-        #hourly-chart {
-            width: 100%;
-            height: 100%;
         }
         .forecast-card img {
             width: 50px;
@@ -57,18 +43,38 @@
             margin-top: 10px;
         }
         .weather-details {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             text-align: center;
             color: white;
-            width: 100%;
         }
         .weather-stats {
             display: flex;
             justify-content: space-around;
             width: 100%;
             margin-top: 10px;
+        }
+        .previous-searches {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .previous-weather-card {
+            background-color: rgba(30, 58, 138, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            width: 140px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .previous-weather-card:hover {
+            background-color: rgba(30, 58, 138, 1);
+        }
+        .previous-weather-card img {
+            width: 40px;
+            height: 40px;
         }
     </style>
 </head>
@@ -77,28 +83,29 @@
         <div class="flex flex-col items-center">
             <input id="city-input" type="text" placeholder="Enter city..." class="border border-gray-300 p-2 rounded w-full max-w-sm mb-4 text-center">
             <button id="get-weather-btn" class="bg-indigo-500 text-white px-6 py-2 rounded shadow-md hover:bg-indigo-600 transition">Get Weather</button>
-            <p id="loading-message" class="loading-message text-gray-600 text-sm mt-2 hidden">Fetching data...</p>
             <p id="error-message" class="text-red-500 text-sm mt-2 hidden"></p>
         </div>
 
-        <p id="last-updated" class="text-sm text-gray-500 mt-4">Loading...</p>
-        <h1 class="text-4xl font-extrabold mb-4 text-indigo-600 tracking-wide uppercase drop-shadow-lg text-center" id="city">Loading...</h1>
+        <h1 id="city" class="text-4xl font-extrabold mb-4 text-indigo-600 tracking-wide uppercase drop-shadow-lg text-center">-</h1>
 
         <div class="current-weather-card">
             <div class="weather-details">
                 <img id="weather-icon" src="" alt="Weather Icon" class="w-20 h-20 hidden">
-                <p class="text-lg text-gray-200 text-center" id="weather-description">Loading...</p>
-                <h2 class="text-6xl font-bold text-center" id="current-temp">--°C</h2>
+                <p class="text-lg text-gray-200" id="weather-description">-</p>
+                <h2 class="text-6xl font-bold" id="current-temp">-</h2>
                 <div class="weather-stats">
-                    <p>Humidity: <span id="humidity">--</span>%</p>
-                    <p>Wind: <span id="wind">--</span> mph</p>
+                    <p>Humidity: <span id="humidity">-</span>%</p>
+                    <p>Wind: <span id="wind">-</span> mph</p>
                 </div>
                 <div class="weather-stats">
-                    <p>Sunrise: <span id="sunrise">--</span></p>
-                    <p>Sunset: <span id="sunset">--</span></p>
+                    <p>Sunrise: <span id="sunrise">-</span></p>
+                    <p>Sunset: <span id="sunset">-</span></p>
                 </div>
             </div>
         </div>
+
+        <h3 class="text-xl font-bold mt-6 text-indigo-900">Previously Searched</h3>
+        <div id="previous-searches" class="previous-searches"></div>
 
         <h3 class="text-xl font-bold mt-6 text-indigo-900">Hourly Forecast</h3>
         <div id="hourly-chart-container">
@@ -116,31 +123,13 @@
             fetchWeather(document.getElementById("city-input").value);
         });
 
-        document.getElementById("city-input").addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                fetchWeather(this.value);
-            }
-        });
-
-        function setLoading(isLoading) {
-            document.getElementById("loading-message").classList.toggle("hidden", !isLoading);
-            document.getElementById("get-weather-btn").disabled = isLoading;
-        }
-
-        function displayError(message) {
-            const errorMessage = document.getElementById("error-message");
-            errorMessage.textContent = message;
-            errorMessage.classList.remove("hidden");
-            setTimeout(() => errorMessage.classList.add("hidden"), 4000);
-        }
-
         async function fetchWeather(city) {
             if (!city) {
                 displayError("Please enter a city");
                 return;
             }
 
-            setLoading(true);
+            resetWeatherDisplay();
 
             try {
                 const response = await fetch(`/api/weather?city=${city}`);
@@ -149,39 +138,45 @@
                 const data = await response.json();
 
                 document.getElementById("city").textContent = `${data.name}, ${data.sys.country}`;
-                document.getElementById("weather-description").textContent = `Feels like ${data.main.feels_like}°C. ${data.weather[0].description}`;
                 document.getElementById("current-temp").textContent = `${data.main.temp}°C`;
-
+                document.getElementById("weather-description").textContent = data.weather[0].description;
                 document.getElementById("humidity").textContent = data.main.humidity;
                 document.getElementById("wind").textContent = data.wind.speed;
                 document.getElementById("sunrise").textContent = new Date(data.sys.sunrise * 1000).toLocaleTimeString();
                 document.getElementById("sunset").textContent = new Date(data.sys.sunset * 1000).toLocaleTimeString();
-                document.getElementById("last-updated").textContent = `Last Updated: ${new Date().toLocaleTimeString()}`;
-
-                document.getElementById("weather-icon").src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+                document.getElementById("weather-icon").src = `https://openweathermap.org/img/wn/${data.weather[0].icon}.png`;
                 document.getElementById("weather-icon").classList.remove("hidden");
 
                 updateForecast(data.forecast);
                 updateHourlyChart(data.hourly);
 
+                saveRecentSearch(data);
+
             } catch (error) {
                 displayError(error.message);
-            } finally {
-                setLoading(false);
             }
         }
 
-        function updateForecast(forecastData) {
+        function resetWeatherDisplay() {
+            document.getElementById("city").textContent = "-";
+            document.getElementById("current-temp").textContent = "-";
+            document.getElementById("weather-description").textContent = "-";
+            document.getElementById("humidity").textContent = "-";
+            document.getElementById("wind").textContent = "-";
+            document.getElementById("sunrise").textContent = "-";
+            document.getElementById("sunset").textContent = "-";
+            document.getElementById("weather-icon").classList.add("hidden");
+        }
+
+        function updateForecast(forecast) {
             const container = document.getElementById("forecast-container");
             container.innerHTML = "";
-
-            forecastData.forEach(day => {
-                const formattedDate = new Date(day.date).toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "2-digit" });
-                const card = document.createElement("div");
+            forecast.forEach(day => {
+                let card = document.createElement("div");
                 card.classList = "forecast-card";
                 card.innerHTML = `
-                    <p>${formattedDate}</p>
-                    <img src="https://openweathermap.org/img/wn/${day.icon}.png" alt="${day.description}">
+                    <p>${day.date}</p>
+                    <img src="https://openweathermap.org/img/wn/${day.icon}.png">
                     <p>${day.temp}°C</p>
                 `;
                 container.appendChild(card);
@@ -191,18 +186,11 @@
         function updateHourlyChart(hourlyData) {
             const ctx = document.getElementById("hourly-chart").getContext("2d");
             if (chartInstance) chartInstance.destroy();
-
             chartInstance = new Chart(ctx, {
                 type: "line",
                 data: {
                     labels: hourlyData.map(h => h.time),
-                    datasets: [{
-                        label: "Temperature (°C)",
-                        data: hourlyData.map(h => h.temp),
-                        borderColor: "blue",
-                        borderWidth: 2,
-                        fill: false
-                    }]
+                    datasets: [{ label: "Temperature (°C)", data: hourlyData.map(h => h.temp), borderWidth: 2 }]
                 }
             });
         }
