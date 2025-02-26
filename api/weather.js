@@ -11,8 +11,8 @@ export default async function handler(req, res) {
         return res.status(200).json(weatherCache[city].data);
     }
 
-    const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API_KEY}`;
-    const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&appid=${API_KEY}`;
+    const weatherUrl = https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API_KEY};
+    const forecastUrl = https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&appid=${API_KEY};
 
     try {
         const [weatherRes, forecastRes] = await Promise.all([fetch(weatherUrl), fetch(forecastUrl)]);
