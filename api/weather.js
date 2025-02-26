@@ -32,7 +32,8 @@ export default async function handler(req, res) {
 
         const hourly = forecastData.list.slice(0, 8).map(entry => ({
             time: entry.dt_txt.split(" ")[1].slice(0, 5),
-            temp: entry.main.temp
+            temp: entry.main.temp,
+            rain: entry.rain ? entry.rain["3h"] || 0 : 0
         }));
 
         const responseData = { ...weatherData, forecast, hourly };
