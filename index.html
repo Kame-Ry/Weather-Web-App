@@ -17,17 +17,36 @@
             font-size: 1rem;
             animation: fade 1.5s infinite;
         }
+        .forecast-card {
+            background-color: rgba(30, 58, 138, 0.6); /* Dark Blue with Medium Transparency */
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 100px;
+        }
+        /* Fix for infinite chart growth */
+        #hourly-chart-container {
+            width: 100%;
+            max-width: 600px;
+            height: 300px;
+            margin: auto;
+        }
+        #hourly-chart {
+            width: 100%;
+            height: 100%;
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
     <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl text-gray-900">
         <div class="flex flex-col items-center">
             <input id="city-input" type="text" placeholder="Enter city..." class="border border-gray-300 p-2 rounded w-full max-w-sm mb-4 text-center">
-            <button id="get-weather-btn" onclick="fetchWeather(document.getElementById('city-input').value)" class="bg-indigo-500 text-white px-6 py-2 rounded shadow-md hover:bg-indigo-600 transition">Get Weather</button>
+            <button id="get-weather-btn" class="bg-indigo-500 text-white px-6 py-2 rounded shadow-md hover:bg-indigo-600 transition">Get Weather</button>
             <p id="loading-message" class="loading-message text-gray-600 text-sm mt-2 hidden">Fetching data...</p>
             <p id="error-message" class="text-red-500 text-sm mt-2 hidden"></p>
         </div>
-        
+
         <p id="last-updated" class="text-sm text-gray-500 mt-4">Loading...</p>
         <h1 class="text-4xl font-extrabold mb-4 text-indigo-600 tracking-wide uppercase drop-shadow-lg text-center" id="city">Loading...</h1>
 
@@ -43,25 +62,39 @@
             <p>Sunrise: <span id="sunrise">--</span></p>
             <p>Sunset: <span id="sunset">--</span></p>
         </div>
-        
+
         <h3 class="text-xl font-bold mt-6 text-indigo-900">Hourly Forecast</h3>
-        <canvas id="hourly-chart"></canvas>
-        
+        <div id="hourly-chart-container">
+            <canvas id="hourly-chart"></canvas>
+        </div>
+
         <h3 class="text-xl font-bold mt-6 text-indigo-900">5-Day Forecast</h3>
-        <div id="forecast-container" class="mt-2 flex flex-row space-x-4 overflow-x-auto"></div>
+        <div id="forecast-container" class="mt-2 grid grid-cols-5 gap-2"></div>
     </div>
-    
+
     <script>
+        let chartInstance = null;
+
+        document.getElementById("get-weather-btn").addEventListener("click", function() {
+            fetchWeather(document.getElementById("city-input").value);
+        });
+
+        document.getElementById("city-input").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                fetchWeather(this.value);
+            }
+        });
+
+        function setLoading(isLoading) {
+            document.getElementById("loading-message").classList.toggle("hidden", !isLoading);
+            document.getElementById("get-weather-btn").disabled = isLoading;
+        }
+
         function displayError(message) {
             const errorMessage = document.getElementById("error-message");
             errorMessage.textContent = message;
             errorMessage.classList.remove("hidden");
             setTimeout(() => errorMessage.classList.add("hidden"), 4000);
-        }
-
-        function setLoading(isLoading) {
-            document.getElementById("loading-message").classList.toggle("hidden", !isLoading);
-            document.getElementById("get-weather-btn").disabled = isLoading;
         }
 
         async function fetchWeather(city) {
@@ -74,106 +107,77 @@
 
             try {
                 const response = await fetch(`/api/weather?city=${city}`);
+                if (!response.ok) throw new Error("Failed to fetch weather data");
+
                 const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(data.error || "Failed to fetch weather data");
-                }
-                
-                document.getElementById("last-updated").textContent = new Date().toLocaleString();
+
                 document.getElementById("city").textContent = `${data.name}, ${data.sys.country}`;
                 document.getElementById("weather-description").textContent = `Feels like ${data.main.feels_like}°C. ${data.weather[0].description}`;
                 document.getElementById("current-temp").textContent = `${data.main.temp}°C`;
+
                 document.getElementById("humidity").textContent = data.main.humidity;
-                document.getElementById("wind").textContent = (data.wind.speed * 2.237).toFixed(1);
+                document.getElementById("wind").textContent = data.wind.speed;
+                document.getElementById("sunrise").textContent = new Date(data.sys.sunrise * 1000).toLocaleTimeString();
+                document.getElementById("sunset").textContent = new Date(data.sys.sunset * 1000).toLocaleTimeString();
+                document.getElementById("last-updated").textContent = `Last Updated: ${new Date().toLocaleTimeString()}`;
 
-                const timezoneOffset = data.timezone;
-                document.getElementById("sunrise").textContent = new Date((data.sys.sunrise + timezoneOffset) * 1000).toLocaleTimeString();
-                document.getElementById("sunset").textContent = new Date((data.sys.sunset + timezoneOffset) * 1000).toLocaleTimeString();
+                document.getElementById("weather-icon").src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+                document.getElementById("weather-icon").classList.remove("hidden");
 
-                // Update weather icon
-                const iconUrl = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
-                const weatherIcon = document.getElementById("weather-icon");
-                weatherIcon.src = iconUrl;
-                weatherIcon.classList.remove("hidden");
+                updateForecast(data.forecast);
+                updateHourlyChart(data.hourly);
 
-                await fetchHourlyForecast(city);
-                await fetchForecast(city);
             } catch (error) {
                 displayError(error.message);
-                console.error(error);
             } finally {
                 setLoading(false);
             }
         }
 
-        async function fetchHourlyForecast(city) {
-            try {
-                const response = await fetch(`/api/weather?city=${city}&type=hourly`);
-                const data = await response.json();
+        function updateForecast(forecastData) {
+            const container = document.getElementById("forecast-container");
+            container.innerHTML = "";
 
-                const hourlyTemps = [];
-                const hourlyLabels = [];
-
-                data.list.slice(0, 12).forEach(entry => {
-                    hourlyTemps.push(entry.main.temp);
-                    hourlyLabels.push(new Date(entry.dt_txt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-                });
-
-                const existingChart = Chart.getChart("hourly-chart");
-                if (existingChart) existingChart.destroy();
-
-                new Chart(document.getElementById("hourly-chart"), {
-                    type: "line",
-                    data: {
-                        labels: hourlyLabels,
-                        datasets: [{
-                            label: "Temperature (°C)",
-                            data: hourlyTemps,
-                            borderColor: "#4F46E5",
-                            backgroundColor: "rgba(79, 70, 229, 0.2)",
-                            fill: true
-                        }]
-                    }
-                });
-            } catch (error) {
-                console.error("Error fetching hourly forecast:", error);
-            }
+            forecastData.forEach(day => {
+                const card = document.createElement("div");
+                card.classList = "forecast-card";
+                card.innerHTML = `
+                    <p>${day.date}</p>
+                    <img src="https://openweathermap.org/img/wn/${day.icon}.png" alt="${day.description}">
+                    <p>${day.temp}°C</p>
+                `;
+                container.appendChild(card);
+            });
         }
 
-        async function fetchForecast(city) {
-            try {
-                const response = await fetch(`/api/weather?city=${city}&type=forecast`);
-                const data = await response.json();
-                
-                const forecastContainer = document.getElementById("forecast-container");
-                forecastContainer.innerHTML = "";
+        function updateHourlyChart(hourlyData) {
+            const ctx = document.getElementById("hourly-chart").getContext("2d");
 
-                const forecastDays = {};
-                data.list.forEach(entry => {
-                    const date = new Date(entry.dt_txt).toLocaleDateString();
-                    if (!forecastDays[date]) {
-                        forecastDays[date] = { temps: [], icon: entry.weather[0].icon, description: entry.weather[0].description };
-                    }
-                    forecastDays[date].temps.push(entry.main.temp);
-                });
-
-                Object.entries(forecastDays).slice(0, 5).forEach(([date, day]) => {
-                    const minTemp = Math.min(...day.temps).toFixed(1);
-                    const maxTemp = Math.max(...day.temps).toFixed(1);
-
-                    forecastContainer.innerHTML += `
-                        <div class="p-4 bg-indigo-100 rounded-lg shadow-md flex flex-col items-center text-center min-w-[150px]">
-                            <h4 class="text-lg font-bold">${date}</h4>
-                            <p>${maxTemp}°C / ${minTemp}°C</p>
-                            <img src="https://openweathermap.org/img/wn/${day.icon}.png" class="w-12 h-12">
-                            <p>${day.description}</p>
-                        </div>
-                    `;
-                });
-            } catch (error) {
-                console.error("Error fetching forecast:", error);
+            if (chartInstance) {
+                chartInstance.destroy();
             }
+
+            chartInstance = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: hourlyData.map(h => h.time),
+                    datasets: [{
+                        label: "Temperature (°C)",
+                        data: hourlyData.map(h => h.temp),
+                        borderColor: "blue",
+                        borderWidth: 2,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: "Time" } },
+                        y: { title: { display: true, text: "Temperature (°C)" }, beginAtZero: false }
+                    }
+                }
+            });
         }
     </script>
 </body>
