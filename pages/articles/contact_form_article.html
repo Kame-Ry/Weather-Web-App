@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>reCAPTCHA and Contact Form</title>
+    <link rel="stylesheet" href="/assets/css/article.css">
+    <script src="/assets/functions/fetch.js" defer></script>
+</head>
+<body>
+    <header id="header"></header>
+    <nav id="nav"></nav>
+    <main class="post-container">
+        <article class="post-header">
+          <p class="post-meta">Published on <time datetime="2025-03-13">March 14, 2025</time> • 7 min read</p>
+            <h1 class="post-title">reCAPTCHA & Contact Form</h1>
+        </article>
+        <figure class="post-image-container">
+            <img src="/assets/images/recaptcha.png" alt="reCAPTCHA and Contact Form" class="post-image">
+        </figure>
+        <article class="post-content">
+            <p>When I first set out to integrate a contact form with reCAPTCHA and EmailJS, I figured it would be a straightforward process—just drop in a few scripts, wire up some form validation, and call it a day. Turns out, there were a few bumps along the way. This post walks through the setup, issues encountered, and improvements I’d make in the future.</p>
+
+            <h2>Why EmailJS Over PHP?</h2>
+            <p>One of the biggest considerations when setting up this contact form was handling email submissions. Normally, I would use PHP to process form submissions and send emails, but since this project is hosted on <strong>GitHub Pages</strong>, using PHP wasn’t an option—it doesn’t support server-side scripting. This is where <strong>EmailJS</strong> came in handy.</p>
+            <h3>Why EmailJS?</h3>
+            <ul>
+                <li><strong>No Backend Required</strong> – Since GitHub Pages is a static hosting platform, EmailJS acts as the backend to process email submissions without needing a dedicated server.</li>
+                <li><strong>Easy Integration</strong> – It integrates seamlessly with JavaScript, allowing me to send emails directly from the front end.</li>
+                <li><strong>Free Tier Available</strong> – EmailJS offers a free plan, which was more than enough for my contact form.</li>
+                <li><strong>Secure With reCAPTCHA</strong> – Since spam bots can target static contact forms, using EmailJS with Google reCAPTCHA added a layer of protection against spammy submissions.</li>
+            </ul>
+
+            <h2>Structuring the Contact Form</h2>
+            <pre><code>&lt;form id="contact-form"&gt;
+  &lt;h2&gt;Contact Us&lt;/h2&gt;
+  &lt;input type="text" id="user_name" name="user_name" placeholder="Your Name" required /&gt;
+  &lt;input type="email" id="user_email" name="user_email" placeholder="Your Email" required /&gt;
+  &lt;textarea id="message" name="message" placeholder="Your Message" required&gt;&lt;/textarea&gt;
+  &lt;div class="g-recaptcha" data-sitekey="YOUR_SITE_KEY"&gt;&lt;/div&gt;
+  &lt;button type="submit"&gt;Send Message&lt;/button&gt;
+  &lt;div id="form-status"&gt;&lt;/div&gt;
+&lt;/form&gt;</code></pre>
+
+            <h2>Loading the Contact Form Dynamically</h2>
+            <pre><code>document.addEventListener('DOMContentLoaded', () => {
+  loadContactFormComponent().then(initContactForm);
+});
+
+function loadContactFormComponent() {
+  return fetch('/components/contact_form.html')
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById('contact').innerHTML = html;
+      if (typeof grecaptcha !== 'undefined') {
+        grecaptcha.render(document.querySelector('.g-recaptcha'), { sitekey: 'YOUR_SITE_KEY' });
+      }
+      setupInputValidation();
+    })
+    .catch(err => {
+      document.getElementById('contact').innerHTML = "<p>Error loading form. Please try again later.</p>";
+    });
+}</code></pre>
+
+            <h2>Input Validation</h2>
+            <pre><code>function setupInputValidation() {
+  const messageField = document.getElementById('message');
+  const nameField = document.getElementById('user_name');
+  const maxLength = 200;
+  const regex = /^[a-zA-Z0-9\\s.,!?'-]{1,200}$/;
+
+  messageField.addEventListener('input', () => {
+    const statusDiv = document.getElementById('form-status');
+    if (messageField.value.length > maxLength) {
+      statusDiv.textContent = `Message too long! Max ${maxLength} characters.`;
+    } else if (!regex.test(messageField.value)) {
+      statusDiv.textContent = 'Invalid characters used!';
+    } else {
+      statusDiv.textContent = '';
+    }
+  });
+}</code></pre>
+
+            <h2>Handling Form Submission with EmailJS</h2>
+            <pre><code>function initContactForm() {
+  document.getElementById('contact-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const formData = {
+      user_name: document.getElementById('user_name').value.trim(),
+      user_email: document.getElementById('user_email').value.trim(),
+      message: document.getElementById('message').value.trim(),
+      'g-recaptcha-response': grecaptcha.getResponse()
+    };
+
+    emailjs.send('gmail_service', 'contact_form', formData).then(() => {
+      alert('Message sent successfully!');
+    }).catch(() => {
+      alert('Error sending message. Please try again.');
+    });
+  });
+}</code></pre>
+
+            <h2>Next Steps & Improvements</h2>
+            <ul>
+                <li><strong>Add Server-Side Validation</strong> – While client-side validation helps, a server-side check would make it more secure.</li>
+                <li><strong>Better Error Handling</strong> – Custom error messages for network issues would improve user experience.</li>
+                <li><strong>Spam Detection</strong> – Implementing honeypots or additional spam filters.</li>
+                <li><strong>Alternative to EmailJS?</strong> – In case EmailJS changes its pricing or policy, I may explore other free backend solutions for handling email forms.</li>
+            </ul>
+        </article>
+    </main>
+    <footer id="footer"></footer>
+</body>
+</html>"""
+
+# Save the file as a .txt
+file_path_corrected = "/mnt/data/recaptcha_contact_form_full.txt"
+with open(file_path_corrected, "w", encoding="utf-8") as file:
+    file.write(full_html_content)
+
+# Provide the file to the user
+file_path_corrected

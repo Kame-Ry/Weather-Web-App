@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plex Watched Media Mover</title>
+    <link rel="stylesheet" href="/assets/css/article.css">
+    <script src="/assets/functions/fetch.js" defer></script>
+    <style>
+        a {
+            color: #f75a22;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        a:hover {
+            color: #ff8c42;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-overlay"></div>
+    <header id="header"></header>
+    <nav id="nav"></nav>
+    <main class="post-container">
+        <article class="post-header">
+            <p class="post-meta">Published on <time datetime="2025-03-16">March 16, 2025</time> • 10 min read</p>
+            <h1 class="post-title">Plex Watched Media Mover</h1>
+        </article>
+        <article class="post-content">
+            <p>The <strong>Plex Watched Media Mover</strong> is a PowerShell script that automates the process of managing watched movies and TV episodes. By leveraging Tautulli’s API, this script moves watched media from my active storage drive to a cold storage drive, ensuring that the Plex library remains organised while keeping media accessible.</p>
+            
+            <h2>Project Overview</h2>
+            <p>This script was designed to automate the cleanup process for me to manage my watched content without manually moving files. It fetches watched media from Tautulli, retrieves file paths, and moves eligible files to an archive location.</p>
+            
+            <h3>Core Functionality</h3>
+            <ul>
+                <li><strong>Fetches watched media</strong> from Tautulli’s API.</li>
+                <li><strong>Filters content</strong> based on a watched percentage threshold.</li>
+                <li><strong>Logs processed items</strong> and metadata API calls.</li>
+                <li><strong>Moves eligible files</strong> to cold storage.</li>
+                <li><strong>Skips already moved files</strong> to avoid duplication.</li>
+            </ul>
+            
+            <h2>Setting Up the Plex Watched Media Mover</h2>
+            <p>To set up and run the script, follow these steps:</p>
+            <ol>
+                <li>Ensure <strong>Plex Media Server</strong> and <strong>Tautulli</strong> are installed.</li>
+                <li>Obtain an <strong>API Key</strong> from Tautulli.</li>
+                <li>Modify the PowerShell script to include your API key and storage paths.</li>
+                <li>Run the script manually or schedule it using Windows Task Scheduler.</li>
+            </ol>
+            
+            <h2>How It Works</h2>
+            <h3>Fetching Watched Media</h3>
+            <pre><code>$moviesUrl = "$baseUrl/?apikey=$apiKey&cmd=get_history&length=$length&media_type=movie"
+$tvUrl = "$baseUrl/?apikey=$apiKey&cmd=get_history&length=$length&media_type=episode"
+$moviesResponse = Invoke-RestMethod -Uri $moviesUrl -Method Get
+$tvResponse = Invoke-RestMethod -Uri $tvUrl -Method Get</code></pre>
+            <p>The script queries Tautulli for watched movies and TV episodes.</p>
+            
+            <h3>Retrieving File Paths</h3>
+            <pre><code>$metadataUrl = "$baseUrl/?apikey=$apiKey&cmd=get_metadata&rating_key=$($item.rating_key)"
+$metadataResponse = Invoke-RestMethod -Uri $metadataUrl -Method Get</code></pre>
+            <p>Each watched item’s file path is extracted using Tautulli’s metadata API.</p>
+            
+            <h3>Moving Files to Cold Storage</h3>
+            <pre><code>Move-Item -Path $item.FilePath -Destination $destinationPath -Force</code></pre>
+            <p>Files are relocated to an archival drive to free up primary storage.</p>
+            
+            <h2>Challenges and Solutions</h2>
+            <ul>
+                <li><strong>Handling API Rate Limits</strong>: Implemented efficient API queries.</li>
+                <li><strong>Missing File Paths</strong>: Skips items without a valid file path.</li>
+                <li><strong>Maintaining Logs</strong>: Detailed logs track watched and moved content.</li>
+            </ul>
+            
+            <h2>Automating with Task Scheduler</h2>
+            <p>To automate the script:</p>
+            <ol>
+                <li>Open <strong>Task Scheduler</strong> and create a new task.</li>
+                <li>Set a trigger (e.g., run daily at midnight).</li>
+                <li>Set the action to run the PowerShell script.</li>
+                <li>Enable "Run whether user is logged on or not."</li>
+            </ol>
+            
+            <h2>Logs and Tracking</h2>
+            <p>Log files are generated for tracking:</p>
+            <ul>
+                <li><strong>Watched Media Log</strong>: Records fetched and processed media.</li>
+                <li><strong>Moved Files Log</strong>: Tracks files that have been archived.</li>
+            </ul>
+            
+            <h2>Final Thoughts</h2>
+            <p>This is a overengineered solution to automate for automating my media management in Plex. By integrating with Tautulli, the script ensures watched content is organized without user intervention. Future enhancements could include additional filtering options and more automation controls.</p>
+            
+            <p>Check out the full project on GitHub: <a href="https://github.com/Kame-Ry/Plex-Watched-Media-Mover" target="_blank">Plex Watched Media Mover</a>.</p>
+        </article>
+    </main>
+    <footer id="footer"></footer>
+</body>
+</html>

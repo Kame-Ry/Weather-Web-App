@@ -1,0 +1,78 @@
+body {
+    background-color: #1d1e20;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.maintenance-banner {
+    background: #ffcc00;
+    color: #000;
+    font-size: 5em;
+    font-weight: bold;
+    padding: 15px;
+    text-align: center;
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    position: relative;
+    white-space: nowrap;
+}
+
+.maintenance-banner span {
+    display: inline-block;
+    padding-left: 100%;
+    animation: scrolling-banner 10s linear infinite;
+}
+
+@keyframes scrolling-banner {
+    from {
+        transform: translateX(00%);
+    }
+    to {
+        transform: translateX(-100%);
+    }
+}
+
+.trademark-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.SG_Trademark img,
+.RT_Trademark img {
+    width: 200px;
+    height: auto;
+    display: block;
+    background: #000;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+@media (max-width: 768px) {
+    .maintenance-banner {
+        font-size: 1.8rem;
+        width: 95%;
+    }
+
+    .trademark-container {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .SG_Trademark img,
+    .RT_Trademark img {
+        width: 150px;
+    }
+}

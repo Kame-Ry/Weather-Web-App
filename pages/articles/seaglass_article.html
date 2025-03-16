@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seaglass Theme</title>
+    <link rel="stylesheet" href="/assets/css/article.css">
+    <script src="/assets/functions/fetch.js" defer></script>
+</head>
+<body>
+        <div id="loading-overlay"></div>
+        <header id="header"></header>
+        <nav id="nav"></nav>
+        <main class="post-container">
+            <article class="post-header">
+                <p class="post-meta">Published on <time datetime="2025-03-13">March 10, 2025</time> • 6 min read</p>
+                <h1 class="post-title">Building a custom web-theme</h1>
+            </article>
+        </article>
+        <figure class="post-image-container">
+            <img src="/assets/images/SG_Trademark.png" alt="Seaglass Logo" class="post-image">
+        </figure>
+        <article class="post-content">
+            <p><strong>Seaglass</strong> is a <strong>lightweight</strong> web theme designed for easy customization and deployment.  
+               It is optimized for <strong>GitHub Pages</strong>, allowing seamless personal or professional website setups.</p>
+            <h2>Features</h2>
+            <ul>
+                <li><strong>Modular Design</strong> – Components are separated for easy modification.</li>
+                <li><strong>Lightweight</strong> – No unnecessary dependencies.</li>
+                <li><strong>Customizable</strong> – Modify colors, logos, and text with ease.</li>
+                <li><strong>GitHub Pages Ready</strong> – Simple deployment to GitHub Pages.</li>
+            </ul>
+            <h2>File Structure</h2>
+            <div class="file-structure">
+                <div class="file-column">
+                    <ul>
+                        <li>📂 <strong>assets/</strong></li>
+                        <ul>
+                            <li>📁 css/ <span class="desc">— Stylesheets</span></li>
+                            <li>📁 images/ <span class="desc">— Icons and logos</span></li>
+                            <li>📁 functions/ <span class="desc">— JavaScript utilities</span></li>
+                        </ul>
+                    </ul>
+                </div>
+                <div class="file-column">
+                    <ul>
+                        <li>📂 <strong>components/</strong></li>
+                        <ul>
+                            <li>📄 header.html</li>
+                            <li>📄 nav.html</li>
+                            <li>📄 footer.html</li>
+                            <li>📄 head.html</li>
+                        </ul>
+                        <li>📄 index.html <span class="desc">— Main entry point</span></li>
+                    </ul>
+                </div>
+                <div class="file-column">
+                    <ul>
+                        <li>📂 <strong>pages/</strong></li>
+                        <ul>
+                            <li>📄 template.html</li>
+                            <li>📄 maintenance.html</li>
+                        </ul>
+                    </ul>
+                </div>
+            </div>
+            <h2>Installation</h2>
+            <ol>
+                <li>Clone the repository:</li>
+                <pre><code>git clone https://github.com/YOUR-USERNAME/seaglass-theme.git</code></pre>
+                <li>Navigate to the directory:</li>
+                <pre><code>cd seaglass-theme</code></pre>
+                <li>Open <code>index.html</code> in a web browser to preview the theme.</li>
+            </ol>
+            <h2>Customization</h2>
+            <h3>Updating Logos & Images</h3>
+            <p>Replace the placeholder images in <code>assets/images/</code> with your own.</p>
+            <h3>Modifying Colors & Styles</h3>
+            <p>Edit the CSS files in <code>assets/css/</code> to update colors, fonts, and layout styles.</p>
+            <h3>Adjusting Navigation</h3>
+            <p>Modify <code>nav.html</code> to update the links and navigation items.</p>
+            <h2>Deployment on GitHub Pages</h2>
+            <ol>
+                <li>Create a repository on GitHub and push the files.</li>
+                <li>Go to <strong>Settings</strong> → <strong>Pages</strong>.</li>
+                <li>Select the <code>main</code> branch and click <strong>Save</strong>.</li>
+                <li>Your site will be available at <code>https://YOUR-USERNAME.github.io/seaglass-theme/</code>.</li>
+            </ol>
+            <h2>Example Screenshots</h2>
+            <figure class="post-image-container">
+                <img src="https://github.com/user-attachments/assets/1d88a7ba-a611-4bd7-ae6e-b875835ec4b2" alt="Home Page Preview" class="post-image">
+                <figcaption>Home Page</figcaption>
+            </figure>
+            <figure class="post-image-container">
+                <img src="https://github.com/user-attachments/assets/89df3824-d479-477f-b18c-799b878ed015" alt="Maintenance Page Preview" class="post-image">
+                <figcaption>Maintenance Page</figcaption>
+            </figure>
+        </article>
+    </main>
+    <footer id="footer"></footer>
+</body>
+</html>

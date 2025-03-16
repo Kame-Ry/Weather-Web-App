@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quotes</title>
+    <link rel="stylesheet" href="/assets/css/article.css">
+    <script src="/assets/functions/fetch.js" defer></script>
+</head>
+<body>
+    <div id="loading-overlay"></div>
+    <header id="header"></header>
+    <nav id="nav"></nav>
+    <main class="post-container">
+        <article class="post-header">
+            <p class="post-meta">Published on <time datetime="2025-03-13">March 13, 2025</time> • 5 min read</p>
+            <h1 class="post-title">Building a Dynamic Quotes Page with JavaScript</h1>
+        </article>
+        <article class="post-content">
+            <p>A quotes page adds a touch of personality and inspiration to the website. I wanted to create a simple yet effective way to 
+            <strong>cycle through a collection of quotes randomly</strong> while maintaining a clean and responsive UI. 
+            This post walks through the process, issues encountered, and improvements I’d consider for the future.</p>
+
+            <h2>Why Use JavaScript for This?</h2>
+            <p>Since this project is hosted on <strong>GitHub Pages</strong>, using JavaScript for dynamic content was the best approach.
+            Without access to a backend, JavaScript allows me to:</p>
+            <ul>
+                <li>Store an <strong>array of quotes</strong> directly in a script.</li>
+                <li><strong>Randomly display</strong> a new quote with each page load or button press.</li>
+                <li>Ensure a <strong>lightweight implementation</strong> that works without external dependencies.</li>
+            </ul>
+
+            <h2>Structuring the Quotes Page</h2>
+            <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;script src="/assets/functions/loading.js" defer&gt;&lt;/script&gt;
+    &lt;script src="/assets/functions/fetch.js" defer&gt;&lt;/script&gt;
+    &lt;link rel="stylesheet" href="/assets/css/quote.css"&gt;
+    &lt;script src="../assets/functions/quotes.js" defer&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;main&gt;
+        &lt;section class="quote-section"&gt;
+            &lt;p class="quote-title"&gt;Collection of Quotes&lt;/p&gt;
+            &lt;blockquote id="quote-text"&gt;Loading...&lt;/blockquote&gt;
+            &lt;p class="author" id="quote-author"&gt;&lt;/p&gt;
+            &lt;button id="new-quote-btn" class="new-quote-btn"&gt;New Quote&lt;/button&gt;
+        &lt;/section&gt;
+    &lt;/main&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+            <h2>JavaScript for Generating Random Quotes</h2>
+            <pre><code>document.addEventListener("DOMContentLoaded", function () {
+    const quotes = [
+      { text: "Change is the only constant in life.", author: "Heraclitus" },
+      { text: "You are what you love. Not what loves you.", author: "Charlie Kaufman" },
+      { text: "Man cannot discover new oceans unless he has the courage to lose sight of the shore.", author: "Andre Gide" }
+    ];
+  
+    function generateRandomQuote() {
+      const quoteText = document.getElementById("quote-text");
+      const quoteAuthor = document.getElementById("quote-author");
+
+      if (!quoteText || !quoteAuthor) {
+        console.error("Quote elements not found!");
+        return;
+      }
+
+      const randomIndex = Math.floor(Math.random() * quotes.length);
+      const quote = quotes[randomIndex];
+
+      quoteText.innerText = `"${quote.text}"`;
+      quoteAuthor.innerText = `— ${quote.author}`;
+    }
+
+    document.getElementById("new-quote-btn").addEventListener("click", generateRandomQuote);
+    generateRandomQuote();
+});</code></pre>
+
+            <h2>Styling the Quotes Section</h2>
+            <pre><code>.quote-section {
+    background: #ebebeb;
+    color: #333;
+    padding: 30px;
+    max-width: 600px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+blockquote {
+    font-size: 1.5em;
+    font-style: italic;
+    color: #444;
+}
+
+.new-quote-btn {
+    margin-top: 15px;
+    padding: 10px 15px;
+    border: none;
+    background-color: #464646;
+    color: white;
+    cursor: pointer;
+    font-size: 1em;
+    border-radius: 5px;
+}
+
+.new-quote-btn:hover {
+    background-color: #6e6e6e;
+}</code></pre>
+
+            <h2>Issues Faced and Fixes</h2>
+            <h3>1. Elements Not Found Error</h3>
+            <p>Initially, the script would fail because <code>#quote-text</code> and <code>#quote-author</code> weren't found when JavaScript executed.</p>
+            <p><strong>Fix:</strong> Wrap everything inside <code>DOMContentLoaded</code> to ensure the DOM is ready.</p>
+
+            <h3>2. The Same Quote Appearing Repeatedly</h3>
+            <p>Sometimes, the same quote would appear multiple times in a row. This felt repetitive.</p>
+            <p><strong>Fix:</strong> Ensure that the next quote is different:</p>
+            <pre><code>let lastIndex = -1;
+
+function generateRandomQuote() {
+    let randomIndex;
+    do {
+        randomIndex = Math.floor(Math.random() * quotes.length);
+    } while (randomIndex === lastIndex);
+    
+    lastIndex = randomIndex;
+    const quote = quotes[randomIndex];
+
+    document.getElementById("quote-text").innerText = `"${quote.text}"`;
+    document.getElementById("quote-author").innerText = `— ${quote.author}`;
+}</code></pre>
+
+            <h2>Future Improvements</h2>
+            <ul>
+                <li><strong>Save Favorite Quotes</strong> – Store user favorites in local storage.</li>
+                <li><strong>API Integration</strong> – Pull quotes from an external API like "They Said So API".</li>
+                <li><strong>Animated Transitions</strong> – Add smooth fading transitions when switching quotes.</li>
+            </ul>
+
+            <h2>Final Thoughts</h2>
+            <p>This setup provides a simple, lightweight <strong>random quotes page</strong> that cycles through quotes on button clicks. 
+            By improving the logic to prevent repetition and considering future enhancements like API integration.
+        </article>
+    </main>
+    <footer id="footer"></footer>
+</body>
+</html>

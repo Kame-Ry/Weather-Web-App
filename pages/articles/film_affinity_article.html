@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Film Affinity - Film Critique Generator</title>
+    <link rel="stylesheet" href="/assets/css/article.css">
+    <script src="/assets/functions/fetch.js" defer></script>
+    <style>
+        a {
+            color: #f75a22;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        a:hover {
+            color: #ff8c42;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-overlay"></div>
+    <header id="header"></header>
+    <nav id="nav"></nav>
+    <main class="post-container">
+        <article class="post-header">
+            <p class="post-meta">Published on <time datetime="2025-03-14">March 14, 2025</time> • 9 min read</p>
+            <h1 class="post-title">Film Affinity: Building a Film Critique Generator</h1>
+        </article>
+        <article class="post-content">
+            <p>The <strong>Film Critique Generator</strong> is an application designed to analyze a user's film ratings from <a href="https://letterboxd.com/" target="_blank">Letterboxd</a> and generate personalized film critiques using OpenAI’s GPT-3.5 model. By combining web scraping, AI text generation, and a graphical user interface (GUI), this tool offers a seamless way for users to gain AI-generated insights into their film preferences.</p>
+            
+            <h2>Project Overview</h2>
+            <p>This project was built to automate the critique process by fetching a user’s film ratings from Letterboxd and using AI to generate personalized reviews. The generated content is then saved as both a text file and an HTML file for easy sharing and viewing.</p>
+            
+            <h3>Core Functionality</h3>
+            <ul>
+                <li><strong>Data Extraction</strong>: Scrapes film ratings from a user’s Letterboxd profile.</li>
+                <li><strong>AI-Powered Analysis</strong>: Uses OpenAI's GPT-3.5 to generate personalized critiques.</li>
+                <li><strong>Graphical Interface</strong>: Provides a user-friendly GUI for easy interaction.</li>
+                <li><strong>File Generation</strong>: Saves critiques as text and HTML files for future reference.</li>
+            </ul>
+            
+            <h2>Setting Up the Film Critique Generator</h2>
+            <p>To use the application, follow these steps:</p>
+            <ol>
+                <li>Obtain an API key from OpenAI for GPT-3.5 access.</li>
+                <li>Download and run the executable: <code>Film_Affinity.exe</code>.</li>
+                <li>Enter a Letterboxd username and OpenAI API key in the GUI.</li>
+                <li>Click the <strong>Generate Critique</strong> button to initiate the process.</li>
+                <li>Review the generated critique in both text and HTML formats.</li>
+            </ol>
+            
+            <h2>How It Works</h2>
+            <p>Breaking down the project’s key functions:</p>
+            
+            <h3>Fetching Film Ratings</h3>
+            <pre><code>def fetch_page(username, page):
+    url = f"https://letterboxd.com/{username}/films/page/{page}/"
+    response = requests.get(url)
+    return response.text if response.status_code == 200 else None</code></pre>
+            <p>This function retrieves film ratings from a user's Letterboxd profile.</p>
+            
+            <h3>Scraping the Data</h3>
+            <pre><code>def scrape_letterboxd(username):
+    ratings = []
+    for page in range(1, 5):  # Fetch multiple pages
+        content = fetch_page(username, page)
+        ratings.extend(parse_ratings(content))
+    return ratings</code></pre>
+            <p>It scrapes multiple pages to extract film ratings efficiently.</p>
+            
+            <h3>Generating AI-Powered Critiques</h3>
+            <pre><code>def generate_film_critique(film_ratings):
+    prompt = f"Based on these ratings, generate a personalized critique: {film_ratings}"
+    response = openai.Completion.create(engine="gpt-3.5-turbo", prompt=prompt, max_tokens=500)
+    return response['choices'][0]['text']</code></pre>
+            <p>The GPT-3.5 model processes the ratings and generates a film critique.</p>
+            
+            <h3>Converting Critiques to HTML</h3>
+            <pre><code>def generate_html_critique(critique_text):
+    return f"""
+    <html>
+    <head><title>Film Critique</title></head>
+    <body><h1>Your Personalized Film Critique</h1><p>{critique_text}</p></body>
+    </html>
+    """</code></pre>
+            <p>The critique is formatted as an HTML page for better readability.</p>
+            
+            <h2>Challenges and Solutions</h2>
+            <ul>
+                <li><strong>Handling Letterboxd’s Pagination</strong>: Implemented looped requests to scrape multiple pages efficiently.</li>
+                <li><strong>API Rate Limits</strong>: Implemented a retry mechanism to handle OpenAI’s request limits.</li>
+                <li><strong>GUI Freezing</strong>: Ensured the GUI remains responsive by running tasks in separate threads.</li>
+            </ul>
+            
+            <h2>Future Improvements</h2>
+            <ul>
+                <li>Support for multiple review styles (formal, casual, humorous).</li>
+                <li>Allow users to select a specific timeframe for film critiques.</li>
+                <li>Enhance GUI with progress bars and better error reporting.</li>
+            </ul>
+            
+            <h2>Final Thoughts</h2>
+            <p>The Film Critique Generator is a project that combines web scraping, AI-generated content, and a GUI to provide users with personalized film critiques. By leveraging OpenAI’s GPT-3.5, this tool delivers insightful reviews based on real user preferences. While there are improvements to be made, the project demonstrates how AI can enhance media critique automation.</p>
+            
+            <p>Check out the full project on GitHub: <a href="https://github.com/Kame-Ry/Film_Affinity-Python-App" target="_blank">Film Affinity - Python App</a>.</p>
+        </article>
+    </main>
+    <footer id="footer"></footer>
+</body>
+</html>
