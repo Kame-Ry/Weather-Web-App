@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Weathrd</title>
+  <meta name="description" content="Clean, fast weather. No fluff.">
+  <meta name="theme-color" content="#080810">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script type="module" src="/src/main.ts"></script>
+</head>
+<body>
+
+  <div id="weather-bg"></div>
+
+  <div class="app">
+
+    <div class="search-row">
+      <div class="search-wrap">
+        <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input id="search-input" type="text" placeholder="Search city…" autocomplete="off" spellcheck="false">
+      </div>
+      <button id="locate-btn" class="icon-btn" title="Use my location" aria-label="Use my location">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 1v4M12 19v4M1 12h4M19 12h4"/>
+          <circle cx="12" cy="12" r="8"/>
+        </svg>
+      </button>
+    </div>
+
+    <div id="error-msg" role="alert"></div>
+
+    <div id="loading-state">
+      <span class="loading-icon">⛅</span>
+      <p style="font-size:13px;color:var(--text-muted)">Fetching weather…</p>
+    </div>
+
+    <div id="empty-state">
+      <div class="icon">🌤</div>
+      <h2>Check the weather</h2>
+      <p>Search for a city or use your location</p>
+    </div>
+
+    <div id="weather-content">
+
+      <div class="hero">
+        <div class="hero-location">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+            <circle cx="12" cy="9" r="2.5"/>
+          </svg>
+          <span id="hero-location"></span>
+        </div>
+        <div class="hero-main">
+          <img id="hero-icon" alt="weather icon">
+          <div id="hero-temp"></div>
+        </div>
+        <div class="hero-desc" id="hero-desc"></div>
+        <div class="hero-range" id="hero-range"></div>
+        <div class="hero-updated" id="hero-updated"></div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+            Feels Like
+          </div>
+          <div class="stat-value" id="stat-feels"></div>
+          <div class="stat-sub" id="stat-feels-sub"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v6m0 0C8.69 8 6 10.69 6 14a6 6 0 0 0 12 0c0-3.31-2.69-6-6-6z"/></svg>
+            Humidity
+          </div>
+          <div class="stat-value" id="stat-humidity"></div>
+          <div class="stat-sub" id="stat-humidity-sub"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
+            Wind
+          </div>
+          <div class="stat-value" id="stat-wind"></div>
+          <div class="stat-sub wind-compass">
+            <div class="compass-ring"><div class="compass-dot" id="compass-dot"></div></div>
+            <span id="stat-wind-sub"></span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            Visibility
+          </div>
+          <div class="stat-value" id="stat-visibility"></div>
+          <div class="stat-sub" id="stat-visibility-sub"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 15a4 4 0 0 0 4 4h9a5 5 0 0 0 1.8-9.7 7 7 0 0 0-13.4 2 4 4 0 0 0-1.4 3.7z"/></svg>
+            Pressure
+          </div>
+          <div class="stat-value" id="stat-pressure"></div>
+          <div class="stat-sub" id="stat-pressure-sub"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h2m16 0h2M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M4.93 19.07l1.41-1.41m11.32-11.32 1.41-1.41"/></svg>
+            Air Quality
+          </div>
+          <div class="stat-value" id="stat-aqi"></div>
+          <div class="stat-sub" id="stat-aqi-sub"></div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-label">Hourly Forecast</div>
+        <div class="hourly-scroll">
+          <div class="hourly-track" id="hourly-track"></div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-label">5-Day Forecast</div>
+        <div id="forecast-rows"></div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-label">Sun</div>
+        <div class="sun-row">
+          <div class="sun-item">
+            <span class="emoji">🌅</span>
+            <div class="label">Sunrise</div>
+            <div class="value" id="sunrise-val"></div>
+          </div>
+          <div class="sun-track">
+            <div class="sun-arc"><div class="sun-orb" id="sun-orb"></div></div>
+          </div>
+          <div class="sun-item">
+            <span class="emoji">🌇</span>
+            <div class="label">Sunset</div>
+            <div class="value" id="sunset-val"></div>
+          </div>
+        </div>
+        <div class="daylight-text" id="daylight-text"></div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
