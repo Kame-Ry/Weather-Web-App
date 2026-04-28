@@ -73,5 +73,6 @@ export function sunPosition(sunrise: number, sunset: number, timezone: number): 
 }
 
 export function owmIcon(icon: string, size: '1x' | '2x' | '4x' = '2x'): string {
+  if (size === '1x') return `https://openweathermap.org/img/wn/${icon}.png`
   return `https://openweathermap.org/img/wn/${icon}@${size}.png`
 }
