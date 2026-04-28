@@ -43,7 +43,7 @@ export function render(d: WeatherData): void {
 
   const icon = $('hero-icon') as HTMLImageElement
   icon.src = owmIcon(d.icon, '2x')
-  icon.style.display = 'block'
+  icon.style.display = 'inline-block'
 
   $('stat-feels').textContent     = `${d.feelsLike}°`
   $('stat-feels-sub').textContent = feelsDesc(d.temp, d.feelsLike)
